@@ -6,4 +6,4 @@ Es werden zwei Rollen unterschieden:
 
 ![Use Case Diagramm](doc/uc-diagram.drawio.svg)
 
-Stand: Übung 4
+Stand: Übung 6
