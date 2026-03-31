@@ -1,11 +1,12 @@
 import axios from "axios";
 import { error } from "@sveltejs/kit";
-import 'dotenv/config';
+import "dotenv/config";
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
 export async function load({ locals }) {
 	const jwt_token = locals.jwt_token;
+	const user_info = locals.user;
 
 	if (!jwt_token) {
 		return {
@@ -23,17 +24,23 @@ export async function load({ locals }) {
 			}
 		});
 
-		const companiesResponse = await axios({
-			method: "get",
-			url: `${API_BASE_URL}/api/company`,
-			headers: {
-				Authorization: "Bearer " + jwt_token
-			}
-		});
+		let companies = [];
+
+		if (user_info && user_info.user_roles && user_info.user_roles.includes("admin")) {
+			const companiesResponse = await axios({
+				method: "get",
+				url: `${API_BASE_URL}/api/company`,
+				headers: {
+					Authorization: "Bearer " + jwt_token
+				}
+			});
+
+			companies = companiesResponse.data;
+		}
 
 		return {
 			jobs: jobsResponse.data,
-			companies: companiesResponse.data
+			companies: companies
 		};
 	} catch (axiosError) {
 		console.log("Error loading jobs:", axiosError);
