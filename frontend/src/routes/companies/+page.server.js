@@ -1,10 +1,22 @@
-// TODO: implement
 import 'dotenv/config';
+import { error } from '@sveltejs/kit';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
-export async function load({ fetch }) {
-	const response = await fetch(`${API_BASE_URL}/api/company`);
+export async function load({ fetch, locals }) {
+	const jwt_token = locals.jwt_token;
+
+	if (!jwt_token) {
+		return {
+			companies: []
+		};
+	}
+
+	const response = await fetch(`${API_BASE_URL}/api/company`, {
+		headers: {
+			Authorization: 'Bearer ' + jwt_token
+		}
+	});
 
 	let companies = [];
 	if (response.ok) {
@@ -17,7 +29,13 @@ export async function load({ fetch }) {
 }
 
 export const actions = {
-	default: async ({ request, fetch }) => {
+	default: async ({ request, fetch, locals }) => {
+		const jwt_token = locals.jwt_token;
+
+		if (!jwt_token) {
+			throw error(401, 'Authentication required');
+		}
+
 		const formData = await request.formData();
 
 		const name = formData.get('name');
@@ -26,7 +44,8 @@ export const actions = {
 		const response = await fetch(`${API_BASE_URL}/api/company`, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				Authorization: 'Bearer ' + jwt_token
 			},
 			body: JSON.stringify({
 				name,
