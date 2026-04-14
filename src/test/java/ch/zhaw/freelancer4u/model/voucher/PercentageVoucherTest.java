@@ -1,15 +1,14 @@
 package ch.zhaw.freelancer4u.model.voucher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 
 import ch.zhaw.freelancer4u.model.Job;
-import ch.zhaw.freelancer4u.model.JobType;
 
 public class PercentageVoucherTest {
 
@@ -22,25 +21,42 @@ public class PercentageVoucherTest {
         assertEquals(0.0, result);
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = { 1, 2, 5, 20, 49, 50 })
-    void testOneJobWithValue50(int percentage) {
-        PercentageVoucher voucher = new PercentageVoucher(percentage);
-        Job job = new Job("Job 1", "Test job", JobType.IMPLEMENT, 50.0, "");
+    @Test
+    void testPercentageLessThanZero() {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            new PercentageVoucher(-1);
+        });
 
-        double result = voucher.getDiscount(List.of(job));
-        double expected = 50.0 * percentage / 100.0;
-
-        assertEquals(expected, result, 0.0001);
+        assertEquals("Error: Discount value must be greater zero.", exception.getMessage());
     }
 
     @Test
-    void testTwoJobsWith42Percent() {
+    void testPercentageEqualZero() {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            new PercentageVoucher(0);
+        });
+
+        assertEquals("Error: Discount value must be greater zero.", exception.getMessage());
+    }
+
+    @Test
+    void testPercentageGreaterThanFifty() {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            new PercentageVoucher(51);
+        });
+
+        assertEquals("Error: Discount value must less or equal 50.", exception.getMessage());
+    }
+
+    @Test
+    void testTwoJobsWithMockito() {
+        Job job1 = Mockito.mock(Job.class);
+        Job job2 = Mockito.mock(Job.class);
+
+        Mockito.when(job1.getEarnings()).thenReturn(42.0);
+        Mockito.when(job2.getEarnings()).thenReturn(77.0);
+
         PercentageVoucher voucher = new PercentageVoucher(42);
-
-        Job job1 = new Job("Job 1", "Test job 1", JobType.IMPLEMENT, 42.0, "");
-        Job job2 = new Job("Job 2", "Test job 2", JobType.REVIEW, 77.0, "");
-
         double result = voucher.getDiscount(List.of(job1, job2));
 
         assertEquals(49.98, result, 0.0001);
