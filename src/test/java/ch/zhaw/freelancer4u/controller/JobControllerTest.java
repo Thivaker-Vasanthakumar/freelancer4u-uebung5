@@ -9,34 +9,42 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import ch.zhaw.freelancer4u.repository.CompanyRepository;
 import ch.zhaw.freelancer4u.security.TestSecurityConfig;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @Import(TestSecurityConfig.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class JobControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     @Autowired
     private CompanyRepository companyRepository;
 
     private static String createdJobId;
+
+    @BeforeEach
+    void setup() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    }
 
     private String getCompanyId() {
         return companyRepository.findAll().get(0).getId();
